@@ -358,7 +358,9 @@
     D().STUDENTS.forEach((s) => (out[s.id] = evaluateStudent(state, s, now)));
     return out;
   }
-  const signature = (e) => JSON.stringify({ p: e.papers.map((p) => p.code + p.status), due: e.due, refund: e.refund, mode: e.win.mode, end: e.win.end, att: e.attCat });
+  // A window change only matters to a student who still has something to do (pay or apply).
+  const needsAction = (e) => e.inCycle && (e.due > 0 || e.attCat === 'condonable' || e.papers.some((p) => p.status === 'payment_due'));
+  const signature = (e, withWindow) => JSON.stringify({ p: e.papers.map((p) => p.code + p.status), due: e.due, refund: e.refund, att: e.attCat, win: withWindow ? [e.win.mode, e.win.end] : null });
 
   // ---------------------------------------------------------------- final list
   function rowsFromEval(evals, state) {
@@ -594,7 +596,7 @@
       const b = before[s.id], a = after[s.id];
       return {
         sid: s.id, name: s.name, program: s.program,
-        changed: signature(b) !== signature(a) || !!granted[s.id],
+        changed: signature(b, needsAction(b) || needsAction(a)) !== signature(a, needsAction(b) || needsAction(a)) || !!granted[s.id],
         before: { att: attText(b), status: b.headline.text, tone: b.headline.tone, due: b.due, refund: b.refund, window: windowText(b.win) },
         after: { att: attText(a), status: a.headline.text, tone: a.headline.tone, due: a.due, refund: a.refund, window: windowText(a.win) },
         notes: changeNotes(b, a, granted[s.id], c),
