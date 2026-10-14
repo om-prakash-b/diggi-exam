@@ -82,9 +82,10 @@
     document.getElementById('topbar').innerHTML = `
       <div class="brand"><span class="logo">Digii</span> Exam Registration &amp; Eligibility <span class="proto">PROTOTYPE</span></div>
       <div class="roles">
-        <button class="seg ${ui.role === 'admin' ? 'active' : ''}" data-act="role" data-v="admin">Admin (CoE / Accounts / Dean)</button>
+        <span class="small" style="color:#aaa">View:</span>
+        <button class="seg ${ui.role === 'admin' ? 'active' : ''}" data-act="role" data-v="admin">University staff (CoE · Accounts · Dean)</button>
         <button class="seg ${ui.role === 'student' ? 'active' : ''}" data-act="role" data-v="student">Student</button>
-        <select data-change="student" title="Switch student">${D.STUDENTS.map((x) => `<option value="${x.id}" ${x.id === ui.sid ? 'selected' : ''}>${x.id} · ${esc(x.name)} · ${esc(x.program)}</option>`).join('')}</select>
+        ${ui.role === 'student' ? `<span class="small" style="color:#aaa">Viewing as:</span><select data-change="student" title="Pick which student to view as">${D.STUDENTS.map((x) => `<option value="${x.id}" ${x.id === ui.sid ? 'selected' : ''}>${x.id} · ${esc(x.name)} · ${esc(x.program)}</option>`).join('')}</select>` : ''}
       </div>
       <div class="tools">
         <button data-act="undo" ${Store.history.length ? '' : 'disabled'}>Undo</button>
@@ -110,7 +111,16 @@
     const pendingApprovals = s.cycle ? Object.values(E.evaluateAll(s, s.now)).filter((e) => e.attCat === 'cond_pending').length : 0;
     const tabs = [['setup', 'Setup'], ['dashboard', 'Dashboard'], ['changes', 'Changes'], ['approvals', 'Approvals' + (pendingApprovals ? `<span class="count">${pendingApprovals}</span>` : '')], ['final', 'Final list'], ['audit', 'Audit log' + (s.audit.length ? `<span class="count">${s.audit.length}</span>` : '')]];
     const body = { setup: renderSetup, dashboard: renderDashboard, changes: renderChanges, approvals: renderApprovals, final: renderFinal, audit: renderAudit }[ui.tab]();
-    return `<div class="tabs">${tabs.map(([k, l]) => `<button class="tab ${ui.tab === k ? 'active' : ''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</div>${body}`;
+    const actingAs = {
+      setup: ['Controller of Examinations', 'sets up the exam cycle. Accounts owns the fee settings.'],
+      dashboard: ['CoE and Accounts', 'monitor every student: status, money and deadlines.'],
+      changes: ui.change ? [E.CHANGE_TYPES[ui.change.type].owner, 'owns this change. The CoE confirms it after seeing the impact.'] : ['CoE, Accounts, Dean or Disciplinary committee', 'depending on the change. Each change shows its owner.'],
+      approvals: ['Controller of Examinations', 'approves or rejects condonation requests.'],
+      final: ['Controller of Examinations', 'locks and publishes the list. Accounts uses the money section.'],
+      audit: ['Anyone on the university side', 'can review what happened, when, why and who did it.'],
+    }[ui.tab];
+    return `<div class="tabs">${tabs.map(([k, l]) => `<button class="tab ${ui.tab === k ? 'active' : ''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</div>
+      <div class="small" style="margin:-8px 0 14px;color:var(--muted)">Acting as: <strong style="color:var(--ink)">${esc(actingAs[0])}</strong> ${esc(actingAs[1])} <span class="muted">(Prototype: one staff view, no login.)</span></div>${body}`;
   }
 
   // ---- setup wizard
