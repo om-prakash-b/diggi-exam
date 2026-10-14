@@ -1,4 +1,4 @@
-# Digii Exam Registration & Eligibility — prototype
+# Digii Exam Registration & Eligibility : prototype
 
 A working prototype of the exam module designed for the Digii APM assignment. It has an admin side and a student side, starts from an empty setup, uses the 12 sample students, and lets you move the simulated date through the December timeline.
 
