@@ -27,13 +27,13 @@
     ['Dates', 'Late window end', (S) => (S.dates.lateEnd ? fmtDate(S.dates.lateEnd) : 'None'), 'None', 'CoE + Accounts', 'Yes, with preview. Late fee only for students paying after their own deadline'],
     ['Dates', 'Attendance cut-off', (S) => fmtDate(S.dates.cutoff), 'Lock date − 1 day', 'CoE (Dean can request)', 'Yes until lock, with preview. Students the change affects get a catch-up window'],
     ['Dates', 'Lock & publish final list', (S) => fmtDate(S.dates.lockDate), 'Exam start − 21 days', 'CoE', 'Yes until lock. After lock: amendments only'],
-    ['Fees', 'Semester exam fee', (S) => inr(S.fees.semester), 'Required', 'Accounts', 'Yes — applies to new payments only'],
-    ['Fees', 'Backlog / improvement fee per paper', (S) => inr(S.fees.perPaper), 'Required', 'Accounts', 'Yes — applies to new payments only'],
-    ['Fees', 'Late fee', (S) => (S.fees.late ? inr(S.fees.late) : '—'), 'Required if a late window exists', 'Accounts', 'Yes — new payments only'],
-    ['Fees', 'Condonation fee', (S) => (S.fees.condonation ? inr(S.fees.condonation) : '—'), 'Required if condonation exists', 'Accounts', 'Yes — new payments only'],
+    ['Fees', 'Semester exam fee', (S) => inr(S.fees.semester), 'Required', 'Accounts', 'Yes, applies to new payments only'],
+    ['Fees', 'Backlog / improvement fee per paper', (S) => inr(S.fees.perPaper), 'Required', 'Accounts', 'Yes, applies to new payments only'],
+    ['Fees', 'Late fee', (S) => (S.fees.late ? inr(S.fees.late) : '-'), 'Required if a late window exists', 'Accounts', 'Yes, new payments only'],
+    ['Fees', 'Condonation fee', (S) => (S.fees.condonation ? inr(S.fees.condonation) : '-'), 'Required if condonation exists', 'Accounts', 'Yes, new payments only'],
     ['Attendance', 'Threshold', (S) => S.attendance.threshold + '%', '75%', 'CoE', 'Yes, with preview'],
     ['Attendance', 'Basis', () => 'Overall (all courses)', 'Overall', 'CoE', 'No, once live (per-course is out of V1)'],
-    ['Attendance', 'Rounding', (S) => (S.attendance.rounding === 'whole' ? 'Round to whole %' : 'None — compared at 1 decimal'), 'None', 'CoE', 'No, once live'],
+    ['Attendance', 'Rounding', (S) => (S.attendance.rounding === 'whole' ? 'Round to whole %' : 'None, compared at 1 decimal'), 'None', 'CoE', 'No, once live'],
     ['Checks', 'Exam fee paid', () => 'Blocks', 'Blocks', 'CoE', 'No'],
     ['Checks', 'Tuition dues', (S) => (S.checks.dues === 'block' ? 'Blocks' : 'Warning only'), 'Warning only', 'CoE + Accounts', 'Yes, with preview'],
     ['Checks', 'Disciplinary hold', () => 'Blocks all papers', 'Blocks', 'CoE', 'No'],
@@ -150,7 +150,7 @@
     } else if (w.step === 3) {
       body = field('Attendance threshold (%)', input('w', 'attendance.threshold', 'number'), metaLine('Threshold'))
         + field('Attendance basis', '<span>Overall (all courses together)</span>', metaLine('Basis'))
-        + field('Rounding', select('w', 'attendance.rounding', [['none', 'None — 74.6% is below 75%'], ['whole', 'Round to whole % — 74.6% counts as 75%']]), metaLine('Rounding'))
+        + field('Rounding', select('w', 'attendance.rounding', [['none', 'None: 74.6% is below 75%'], ['whole', 'Round to whole %: 74.6% counts as 75%']]), metaLine('Rounding'))
         + field('Exam fee paid', '<span>Blocks the exam if unpaid</span>', metaLine('Exam fee paid'))
         + field('Tuition dues', select('w', 'checks.dues', [['warn', 'Warning only'], ['block', 'Block exam registration']]), metaLine('Tuition dues'))
         + field('Disciplinary hold', '<span>Blocks all papers</span>', metaLine('Disciplinary hold'));
@@ -163,7 +163,7 @@
         + field('Improvement attempts allowed', input('w', 'exceptions.improvement.allowed', 'checkbox') + ' Max papers ' + input('w', 'exceptions.improvement.max', 'number', 'style="width:70px;min-width:0"'), metaLine('Improvement attempts'))
         + field('Students may opt out of a backlog paper', input('w', 'exceptions.backlogOptOut', 'checkbox'), metaLine('Opt out of a backlog paper') + '. Opted-out papers carry forward.');
     } else if (w.step === 5) {
-      body = field('Fee fixed at', '<span>Time of payment — later fee changes apply to new payments only</span>', metaLine('Fee fixed at'))
+      body = field('Fee fixed at', '<span>Time of payment. Later fee changes apply to new payments only</span>', metaLine('Fee fixed at'))
         + field('Payment counted at', select('w', 'rules.paymentBasis', [['initiated', 'Payment start time'], ['confirmed', 'Bank confirmation time']]), metaLine('Payment counted at'))
         + field('Protect students already in progress', input('w', 'rules.protectInProgress', 'checkbox') + ' If a deadline is shortened, students who started the form keep the date they were shown', metaLine('Protect students already in progress'))
         + field('Catch-up window after a change (days)', input('w', 'rules.catchUpDays', 'number'), metaLine('Catch-up window after a change') + '. For students a change newly makes eligible after their window closed.')
@@ -172,7 +172,7 @@
       const errs = E.validateSettings(S);
       body = (errs.length ? `<div class="errors"><strong>Fix before creating:</strong><ul>${errs.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '<div class="flash ok">All required settings are complete.</div>')
         + `<table style="margin-top:10px"><tr><th>Group</th><th>Setting</th><th>Value</th><th>Owner</th><th>Can it change once live?</th></tr>
-          ${SETTINGS_ROWS.map((r) => { let v; try { v = r[2](E.validateSettings(S).length ? S : S); } catch (e) { v = '—'; } return `<tr><td>${r[0]}</td><td>${r[1]}</td><td><strong>${esc(v)}</strong></td><td>${r[4]}</td><td class="small">${r[5]}</td></tr>`; }).join('')}</table>
+          ${SETTINGS_ROWS.map((r) => { let v; try { v = r[2](E.validateSettings(S).length ? S : S); } catch (e) { v = '-'; } return `<tr><td>${r[0]}</td><td>${r[1]}</td><td><strong>${esc(v)}</strong></td><td>${r[4]}</td><td class="small">${r[5]}</td></tr>`; }).join('')}</table>
           <div class="row" style="margin-top:14px"><button class="btn primary" data-act="wz-create" ${errs.length ? 'disabled' : ''}>Create exam cycle (settings v1)</button><span class="muted small">Creating does not open the form early: it opens on the form-open date.</span></div>`;
     }
     return `<div class="card">
@@ -203,13 +203,13 @@
     const by = (t) => evals.filter((e) => e.headline.tone === t).length;
     const k = (v, l) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`;
     return `<div class="kpis">${k(evals.length, 'Students in cycle')}${k(by('ok'), 'Cleared')}${k(by('warn'), 'Action needed')}${k(by('info'), 'Provisional / processing / awaiting')}${k(by('bad'), 'Blocked or not registered')}${k(inr(evals.reduce((a, e) => a + e.paidTotal, 0)), 'Collected')}${k(inr(evals.reduce((a, e) => a + (e.canAct ? e.due : 0), 0)), 'Outstanding (window open)')}${k(inr(evals.reduce((a, e) => a + e.refund, 0)), 'Refunds due')}</div>
-    <div class="card"><h3>All students — computed live from data and rules at ${fmtTs(s.now)}</h3>
+    <div class="card"><h3>All students, computed live from data and rules at ${fmtTs(s.now)}</h3>
       <table><tr><th>Student</th><th>Attendance used</th><th>Status</th><th>Papers cleared</th><th class="right">Paid</th><th class="right">Due</th><th class="right">Refund</th><th>Window</th><th></th></tr>
       ${evals.map((e) => `<tr><td><strong>${e.id}</strong> ${esc(e.s.name)}<div class="small muted">${esc(e.s.program)} · Sem ${e.s.sem}${e.s.dues ? ` · dues ${inr(e.s.dues)}` : ''}${e.hold ? ' · HOLD' : ''}</div></td>
         <td>${e.att.value}%<div class="small muted">${e.att.final ? 'final, to ' + fmtDate(e.att.asOf) : 'provisional'}</div></td>
         <td>${badge(e.headline.tone, e.headline.text)}</td>
         <td>${e.papers.filter((p) => p.status === 'cleared').length} / ${e.papers.filter((p) => p.selected).length}</td>
-        <td class="right">${inr(e.paidTotal)}</td><td class="right">${e.due && e.canAct ? inr(e.due) : '—'}</td><td class="right">${e.refund ? inr(e.refund) : '—'}</td>
+        <td class="right">${inr(e.paidTotal)}</td><td class="right">${e.due && e.canAct ? inr(e.due) : '-'}</td><td class="right">${e.refund ? inr(e.refund) : '-'}</td>
         <td class="small">${esc(E.windowText(e.win))}${e.win.protectedDeadline ? '<div class="muted">protected deadline</div>' : ''}</td>
         <td><button class="btn sm" data-act="view-student" data-v="${e.id}">Open as student</button></td></tr>`).join('')}</table></div>
     ${renderSamplePanel()}`;
@@ -239,7 +239,7 @@
       case 'correction': {
         const stu = studentById(c.fields.sid);
         const pts = stu ? E.attPoints(s, stu) : [];
-        return field('Student', select('c', 'sid', studs)) + field('Attendance figure to correct', select('c', 'point', D.ATT_DATES.map((d, i) => [d, `Up to ${fmtDate(d)} — currently ${pts[i] ? E.round1(pts[i].v) : '?'}%`])), 'Corrections apply to that period and every later period that includes it.')
+        return field('Student', select('c', 'sid', studs)) + field('Attendance figure to correct', select('c', 'point', D.ATT_DATES.map((d, i) => [d, `Up to ${fmtDate(d)}: currently ${pts[i] ? E.round1(pts[i].v) : '?'}%`])), 'Corrections apply to that period and every later period that includes it.')
           + field('Corrected figure (%)', input('c', 'newValue', 'number')) + field('Approved by Dean', input('c', 'deanApproved', 'checkbox') + ' Required after the cut-off (simulated sign-off)');
       }
       case 'hold': return field('Student', select('c', 'sid', studs)) + field('Order / note', input('c', 'note'));
@@ -286,7 +286,7 @@
     if (p.error) return `<div class="errors">${esc(p.error)}</div>`;
     const sm = p.summary;
     return `<div class="card" style="border:2px solid var(--ink)">
-      <h3>Impact preview — what you are about to confirm</h3>
+      <h3>Impact preview: what you are about to confirm</h3>
       <p><strong>${esc(p.title)}</strong></p>
       <div class="kpis">
         <div class="kpi"><div class="v">${sm.affected} / 12</div><div class="l">students affected</div></div>
@@ -323,8 +323,8 @@
     const evals = Object.values(o.evals).filter((e) => e.inCycle);
     const pendingStudents = evals.filter((e) => ['warn', 'info'].includes(e.headline.tone));
     const head = s.lock
-      ? `<div class="card"><div class="row"><h2>Final list — locked &amp; published</h2>${badge('ok', 'v' + s.lock.version)}</div><p>Locked ${fmtTs(s.lock.at)} · ${s.amendments.length} amendment(s) since. This is what goes to hall tickets, seating and question-paper printing.</p>
-         ${s.amendments.length ? `<table><tr><th>Amendment</th><th>When</th><th>Cause</th><th>Added</th><th>Removed</th></tr>${s.amendments.map((a) => `<tr><td>v${a.version}</td><td class="nowrap">${fmtTs(a.at)}</td><td>${esc(a.cause)}</td><td>${a.added.map((r) => r.sid + ' ' + r.code).join(', ') || '—'}</td><td>${a.removed.map((r) => r.sid + ' ' + r.code).join(', ') || '—'}</td></tr>`).join('')}</table>` : ''}</div>`
+      ? `<div class="card"><div class="row"><h2>Final list: locked &amp; published</h2>${badge('ok', 'v' + s.lock.version)}</div><p>Locked ${fmtTs(s.lock.at)} · ${s.amendments.length} amendment(s) since. This is what goes to hall tickets, seating and question-paper printing.</p>
+         ${s.amendments.length ? `<table><tr><th>Amendment</th><th>When</th><th>Cause</th><th>Added</th><th>Removed</th></tr>${s.amendments.map((a) => `<tr><td>v${a.version}</td><td class="nowrap">${fmtTs(a.at)}</td><td>${esc(a.cause)}</td><td>${a.added.map((r) => r.sid + ' ' + r.code).join(', ') || '-'}</td><td>${a.removed.map((r) => r.sid + ' ' + r.code).join(', ') || '-'}</td></tr>`).join('')}</table>` : ''}</div>`
       : `<div class="card"><h2>Lock &amp; publish the final list</h2><p>Scheduled for <strong>${fmtDate(S.dates.lockDate)}</strong> (exams ${fmtDate(S.cycle.examStart)}). Below is the <strong>live</strong> list as it stands now.</p>
          ${pendingStudents.length ? `<div class="flash warn">${pendingStudents.length} student(s) still have open items and will not be on the list unless resolved: ${pendingStudents.map((e) => `${e.id} (${esc(e.headline.text)})`).join('; ')}</div>` : ''}
          <div class="row" style="margin-top:8px"><button class="btn primary" data-act="lock" ${lockErr ? 'disabled' : ''}>Lock &amp; publish final list (v1)</button>${lockErr ? `<span class="badge bad">${esc(lockErr)}</span>` : s.now.slice(0, 10) < S.dates.lockDate ? `<span class="badge warn">Earlier than the scheduled ${fmtDate(S.dates.lockDate)}</span>` : ''}</div></div>`;
@@ -336,11 +336,11 @@
         ${Object.entries(bySid).map(([sid, rs]) => `<tr><td class="nowrap">DU-D25-${sid}</td><td><strong>${sid}</strong> ${esc(rs[0].name)}</td><td>${esc(rs[0].program)} · Sem ${rs[0].sem}</td><td>${rs.map((r) => `${r.code}${r.type !== 'regular' ? ` <span class="small muted">(${r.type})</span>` : ''}`).join(', ')}</td><td>${s.lock ? 'v' + (s.lock.ticketVersions[sid] || 1) : 'not published'}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No students cleared yet.</td></tr>'}</table></div>
       <div class="card"><div class="row"><h3>2. Headcount per paper → seating &amp; question-paper printing</h3><span class="spacer"></span><button class="btn sm" data-act="csv" data-v="papers">Download CSV</button></div>
         <table><tr><th>Paper</th><th class="right">Regular</th><th class="right">Backlog</th><th class="right">Improvement</th><th class="right">Print / seat</th><th class="right">Old method (course registration count)</th><th class="right">Difference</th></tr>
-        ${o.papers.map((p) => `<tr><td><strong>${p.code}</strong> ${esc(p.name)}</td><td class="right">${p.regular}</td><td class="right">${p.backlog}</td><td class="right">${p.improvement}</td><td class="right"><strong>${p.total}</strong></td><td class="right">${p.oldCount}</td><td class="right">${p.total - p.oldCount > 0 ? `<span class="badge warn">+${p.total - p.oldCount} short before</span>` : p.total - p.oldCount < 0 ? `<span class="badge muted-b">${p.total - p.oldCount} wasted before</span>` : '—'}</td></tr>`).join('')}</table></div>
+        ${o.papers.map((p) => `<tr><td><strong>${p.code}</strong> ${esc(p.name)}</td><td class="right">${p.regular}</td><td class="right">${p.backlog}</td><td class="right">${p.improvement}</td><td class="right"><strong>${p.total}</strong></td><td class="right">${p.oldCount}</td><td class="right">${p.total - p.oldCount > 0 ? `<span class="badge warn">+${p.total - p.oldCount} short before</span>` : p.total - p.oldCount < 0 ? `<span class="badge muted-b">${p.total - p.oldCount} wasted before</span>` : '-'}</td></tr>`).join('')}</table></div>
       <div class="grid2"><div class="card"><div class="row"><h3>3. Not on the list / open items</h3><span class="spacer"></span><button class="btn sm" data-act="csv" data-v="exceptions">CSV</button></div>
         <table><tr><th>Student</th><th>Status</th><th>Papers not cleared</th></tr>${o.exceptions.map((x) => `<tr><td class="nowrap"><strong>${x.sid}</strong> ${esc(x.name)}</td><td>${esc(x.status)}</td><td class="small">${esc(x.papers)}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">None</td></tr>'}</table></div>
       <div class="card"><div class="row"><h3>4. Money → Accounts</h3><span class="spacer"></span><button class="btn sm" data-act="csv" data-v="money">CSV</button></div>
-        <table><tr><th>Student</th><th class="right">Paid</th><th class="right">Due (window open)</th><th class="right">Refund due</th><th>Refund reason</th></tr>${o.money.map((m) => `<tr><td>${m.sid}</td><td class="right">${inr(m.paid)}</td><td class="right">${m.due ? inr(m.due) : '—'}</td><td class="right">${m.refund ? inr(m.refund) : '—'}</td><td class="small">${esc(m.refundReason)}</td></tr>`).join('')}</table></div></div>`;
+        <table><tr><th>Student</th><th class="right">Paid</th><th class="right">Due (window open)</th><th class="right">Refund due</th><th>Refund reason</th></tr>${o.money.map((m) => `<tr><td>${m.sid}</td><td class="right">${inr(m.paid)}</td><td class="right">${m.due ? inr(m.due) : '-'}</td><td class="right">${m.refund ? inr(m.refund) : '-'}</td><td class="small">${esc(m.refundReason)}</td></tr>`).join('')}</table></div></div>`;
   }
 
   // ---- audit
@@ -384,7 +384,7 @@
     const notices = (s.notices[stu.id] || []).slice().reverse();
     const pays = e.payments.map((p) => `<tr><td class="nowrap">${p.id}</td><td>${p.lines.map((l) => `${esc(l.label)} ${inr(l.amount)}`).join('<br>')}</td><td class="small nowrap">Started ${fmtTs(p.initiatedAt)}<br>Bank ${fmtTs(p.confirmedAt)}${p.pending ? ' (pending)' : ''}</td><td class="right">${inr(p.total)}</td></tr>`).join('');
     const myRows = s.lock ? s.lock.rows.filter((r) => r.sid === stu.id) : [];
-    const ticket = myRows.length ? `<div class="ticket"><div class="th"><div><strong>DIGII UNIVERSITY — HALL TICKET</strong><div class="small">${esc(S.cycle.name)}</div></div><div class="right"><strong>DU-D25-${stu.id}</strong><div class="small">Version ${s.lock.ticketVersions[stu.id] || 1}${(s.lock.ticketVersions[stu.id] || 1) > 1 ? ' (amended — earlier versions superseded)' : ''}</div></div></div>
+    const ticket = myRows.length ? `<div class="ticket"><div class="th"><div><strong>DIGII UNIVERSITY HALL TICKET</strong><div class="small">${esc(S.cycle.name)}</div></div><div class="right"><strong>DU-D25-${stu.id}</strong><div class="small">Version ${s.lock.ticketVersions[stu.id] || 1}${(s.lock.ticketVersions[stu.id] || 1) > 1 ? ' (amended: earlier versions superseded)' : ''}</div></div></div>
         <div>${esc(stu.name)} · ${esc(stu.program)} · Semester ${stu.sem}</div>
         <table style="margin-top:8px"><tr><th>Paper</th><th>Name</th><th>Type</th></tr>${myRows.map((r) => `<tr><td>${r.code}</td><td>${esc(r.paper)}</td><td>${r.type}</td></tr>`).join('')}</table>
         <div class="row" style="margin-top:8px"><button class="btn sm" data-act="print">Print</button></div></div>` : '';
@@ -393,7 +393,7 @@
       ${ticket ? `<div class="card"><h3>Hall ticket</h3>${ticket}</div>` : ''}
       <div class="grid2">
         <div>
-          <div class="card"><h3>Why — your checks</h3><ul class="notes">${e.why.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>
+          <div class="card"><h3>Why: your checks</h3><ul class="notes">${e.why.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>
           ${condBox}${payBox}
           <div class="card"><h3>Your papers</h3>${papers}</div>
           <div class="card"><h3>Payments &amp; refunds</h3>${pays ? `<table><tr><th>Ref</th><th>For</th><th>Time</th><th class="right">Amount</th></tr>${pays}</table>` : '<p class="muted">No payments yet.</p>'}
@@ -486,7 +486,7 @@
     },
     'cancel-change': () => { ui.change = null; render(); },
     preview: () => { ui.change.preview = E.previewChange(st(), { type: ui.change.type, fields: ui.change.fields }, now()); render(); },
-    'discard-change': () => { ui.change.preview = null; flash('muted', 'Change discarded — nothing changed.'); render(); },
+    'discard-change': () => { ui.change.preview = null; flash('muted', 'Change discarded. Nothing changed.'); render(); },
     'confirm-change': () => {
       const p = ui.change.preview;
       const r = E.commitChange(st(), p, ui.change.meta);

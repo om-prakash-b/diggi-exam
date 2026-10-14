@@ -1,4 +1,4 @@
-/* Exam Registration & Eligibility — rules engine.
+/* Exam Registration & Eligibility: rules engine.
    Pure functions: every function takes (state, ..., now) and returns a result or a NEW state.
    No DOM, no clock, no storage. In a real deployment this is the service layer behind the API
    (see README for the endpoint mapping). */
@@ -23,12 +23,12 @@
   const eod = (d) => d.slice(0, 10) + 'T23:59';
   const sod = (d) => d.slice(0, 10) + 'T00:00';
   function fmtDate(d) {
-    if (!d) return '—';
+    if (!d) return '-';
     const [, m, da] = d.slice(0, 10).split('-').map(Number);
     return `${da} ${MON[m - 1]}`;
   }
   function fmtTs(ts) {
-    if (!ts) return '—';
+    if (!ts) return '-';
     const [h, mi] = ts.slice(11, 16).split(':').map(Number);
     return `${fmtDate(ts)}, ${((h + 11) % 12) + 1}:${String(mi).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
   }
@@ -196,17 +196,17 @@
   // ---------------------------------------------------------------- per-student evaluation
   const PAPER_STATUS = {
     cleared: { label: 'Cleared', tone: 'ok' },
-    registered_provisional: { label: 'Registered — provisional until cut-off', tone: 'info' },
+    registered_provisional: { label: 'Registered, provisional until cut-off', tone: 'info' },
     processing: { label: 'Payment processing', tone: 'info' },
     payment_due: { label: 'Payment due', tone: 'warn' },
     condonation_available: { label: 'Condonation available', tone: 'warn' },
     awaiting_condonation: { label: 'Awaiting condonation approval', tone: 'warn' },
-    blocked_att: { label: 'Blocked — attendance', tone: 'bad' },
-    blocked_hold: { label: 'Blocked — disciplinary hold', tone: 'bad' },
-    blocked_dues: { label: 'Blocked — tuition dues', tone: 'bad' },
-    not_registered: { label: 'Not registered — form closed', tone: 'bad' },
+    blocked_att: { label: 'Blocked: attendance', tone: 'bad' },
+    blocked_hold: { label: 'Blocked: disciplinary hold', tone: 'bad' },
+    blocked_dues: { label: 'Blocked: tuition dues', tone: 'bad' },
+    not_registered: { label: 'Not registered: form closed', tone: 'bad' },
     not_open: { label: 'Form not open yet', tone: 'muted' },
-    opted_out: { label: 'Opted out — carried forward', tone: 'muted' },
+    opted_out: { label: 'Opted out: carried forward', tone: 'muted' },
     not_selected: { label: 'Not selected', tone: 'muted' },
   };
 
@@ -268,10 +268,10 @@
 
     const dueLines = Object.entries(req).filter(([u]) => !paid[u]).map(([unit, v]) => ({ unit, ...v }));
     const refundReason = (u) => {
-      if (hold) return 'Disciplinary hold — not writing this cycle';
+      if (hold) return 'Disciplinary hold: not writing this cycle';
       if (duesBlock) return 'Blocked for tuition dues';
       if (u === 'SEM') return 'Not eligible for regular papers';
-      if (u === 'COND') return att.cat === 'pass' ? 'Condonation no longer needed — attendance now meets the rule' : 'Condonation not granted';
+      if (u === 'COND') return att.cat === 'pass' ? 'Condonation no longer needed: attendance now meets the rule' : 'Condonation not granted';
       if (u === 'LATE') return 'No papers left to write';
       return 'Paper dropped';
     };
@@ -320,15 +320,15 @@
     if (has('condonation_available')) return { tone: 'warn', text: `Action needed: apply for condonation by ${fmtTs(win.end)}`, next: `Apply for condonation, then pay the condonation fee (${inr(S.fees.condonation)})${e.paid.SEM ? '' : ' and the semester exam fee'}. The CoE then approves.` + refundNote };
     if (e.due > 0 && e.canAct) return { tone: 'warn', text: `Action needed: pay ${inr(e.due)} by ${fmtTs(win.end)}`, next: 'Review your papers below, then pay.' + refundNote };
     if (has('awaiting_condonation')) return { tone: 'info', text: 'Waiting for CoE approval of your condonation', next: 'Nothing to do. You will be notified when the CoE decides.' + refundNote };
-    if (has('processing')) return { tone: 'info', text: 'Payment processing — waiting for bank confirmation', next: 'Your payment counts from the time you started it.' };
+    if (has('processing')) return { tone: 'info', text: 'Payment processing, waiting for bank confirmation', next: 'Your payment counts from the time you started it.' };
     if (cleared + prov > 0) {
-      const blockedNote = has('blocked_att') ? ' (regular papers blocked — attendance)' : '';
-      if (prov) return { tone: 'info', text: `Registered for ${cleared + prov} paper(s) — provisional until the attendance cut-off (${fmtDate(att.cutoff)})`, next: att.cat === 'risk' ? `Your attendance is below ${att.threshold}%. Attend classes before ${fmtDate(att.cutoff)} to stay eligible.` : 'Keep your attendance above the requirement until the cut-off.' };
+      const blockedNote = has('blocked_att') ? ' (regular papers blocked for attendance)' : '';
+      if (prov) return { tone: 'info', text: `Registered for ${cleared + prov} paper(s), provisional until the attendance cut-off (${fmtDate(att.cutoff)})`, next: att.cat === 'risk' ? `Your attendance is below ${att.threshold}%. Attend classes before ${fmtDate(att.cutoff)} to stay eligible.` : 'Keep your attendance above the requirement until the cut-off.' };
       const lockedFor = state.lock && state.lock.rows.some((r) => r.sid === e.id);
       return { tone: blockedNote ? 'warn' : 'ok', text: (lockedFor ? `Hall ticket ready: ${cleared} paper(s)` : `Registered and cleared for ${cleared} paper(s)`) + blockedNote, next: (lockedFor ? 'Download your hall ticket below.' : state.lock ? 'Your hall ticket will update shortly.' : `Hall tickets are published on ${fmtDate(S.dates.lockDate)}.`) + refundNote };
     }
     if (has('blocked_att')) return { tone: 'bad', text: 'Not eligible to write regular papers this cycle', next: 'See the reason below.' + refundNote };
-    if (has('not_registered')) return { tone: 'bad', text: 'Not registered — the exam form closed', next: 'Contact the exam cell.' + refundNote };
+    if (has('not_registered')) return { tone: 'bad', text: 'Not registered: the exam form closed', next: 'Contact the exam cell.' + refundNote };
     return { tone: 'muted', text: 'Nothing to register', next: refundNote };
   }
 
@@ -338,7 +338,7 @@
     const thr = `${att.threshold}%${S.attendance.rounding === 'whole' ? ' (rounded to whole %)' : ''}`;
     if (!att.final) lines.push(`Attendance so far: ${att.value}%. Cut-off ${fmtDate(att.cutoff)}; rule ${thr}. ${att.cat === 'risk' ? 'You are currently below the rule.' : 'On track.'}`);
     else lines.push(`Attendance at the cut-off (${fmtDate(att.cutoff)}): ${att.value}%${att.corrected ? ' (includes an approved correction)' : ''}. Rule: ${thr}.`);
-    if (att.rule && ['condonable', 'cond_pending', 'condoned'].includes(att.cat)) lines.push(`Condonation applies to ${s.program} for ${att.rule.min}–${att.rule.max}% (fee ${inr(S.fees.condonation)}). Status: ${att.cat === 'condoned' ? 'approved' : att.cat === 'cond_pending' ? 'applied, awaiting approval' : 'available — not applied yet'}.`);
+    if (att.rule && ['condonable', 'cond_pending', 'condoned'].includes(att.cat)) lines.push(`Condonation applies to ${s.program} for ${att.rule.min}–${att.rule.max}% (fee ${inr(S.fees.condonation)}). Status: ${att.cat === 'condoned' ? 'approved' : att.cat === 'cond_pending' ? 'applied, awaiting approval' : 'available: not applied yet'}.`);
     if (e.attCat === 'fail_expired') lines.push('Condonation was available but was not applied for before your window closed.');
     if (att.final && e.attCat === 'fail') lines.push(`Not eligible for regular papers: ${att.noRoute}.`);
     if (['fail', 'fail_expired'].includes(e.attCat) && e.papers.some((p) => p.type !== 'regular')) lines.push("Backlog and improvement papers are not affected by this semester's attendance.");
@@ -395,14 +395,14 @@
 
   // ---------------------------------------------------------------- phase
   function phase(state, now) {
-    if (!state.cycle) return { key: 'setup', label: 'Not set up — create the exam cycle', tone: 'muted' };
+    if (!state.cycle) return { key: 'setup', label: 'Not set up: create the exam cycle', tone: 'muted' };
     const S = current(state);
-    if (now >= sod(S.cycle.examStart)) return { key: 'exams', label: 'Exams in progress — changes frozen', tone: 'muted' };
-    if (state.lock) return { key: 'published', label: `Final list locked & published (v${state.lock.version}) — changes only as amendments`, tone: 'ok' };
-    if (now < sod(S.dates.formOpen)) return { key: 'scheduled', label: `Scheduled — exam form opens ${fmtDate(S.dates.formOpen)}`, tone: 'muted' };
-    if (now <= eod(S.dates.deadline)) return { key: 'open', label: `Exam form open — deadline ${fmtDate(S.dates.deadline)}`, tone: 'info' };
+    if (now >= sod(S.cycle.examStart)) return { key: 'exams', label: 'Exams in progress: changes frozen', tone: 'muted' };
+    if (state.lock) return { key: 'published', label: `Final list locked & published (v${state.lock.version}): changes only as amendments`, tone: 'ok' };
+    if (now < sod(S.dates.formOpen)) return { key: 'scheduled', label: `Scheduled: exam form opens ${fmtDate(S.dates.formOpen)}`, tone: 'muted' };
+    if (now <= eod(S.dates.deadline)) return { key: 'open', label: `Exam form open: deadline ${fmtDate(S.dates.deadline)}`, tone: 'info' };
     if (S.dates.lateEnd && now <= eod(S.dates.lateEnd)) return { key: 'late', label: `Late window until ${fmtDate(S.dates.lateEnd)} (late fee ${inr(S.fees.late)})`, tone: 'warn' };
-    return { key: 'review', label: `Form closed — review and lock (scheduled ${fmtDate(S.dates.lockDate)})`, tone: 'warn' };
+    return { key: 'review', label: `Form closed: review and lock (scheduled ${fmtDate(S.dates.lockDate)})`, tone: 'warn' };
   }
 
   // ---------------------------------------------------------------- admin changes
@@ -542,10 +542,10 @@
   }
 
   function windowText(win) {
-    if (!win || !win.mode) return '—';
+    if (!win || !win.mode) return '-';
     return { open: `Open till ${fmtTs(win.end)}`, catchup: `Catch-up till ${fmtTs(win.end)}`, late: `Late window till ${fmtTs(win.end)}`, closed: 'Closed', not_open: `Opens ${fmtDate(win.formOpen)}` }[win.mode];
   }
-  function attText(e) { return e.att ? `${e.att.value}%${e.att.final ? '' : ' (so far)'}` : '—'; }
+  function attText(e) { return e.att ? `${e.att.value}%${e.att.final ? '' : ' (so far)'}` : '-'; }
 
   function changeNotes(b, a, granted, c) {
     const lines = [];
@@ -562,7 +562,7 @@
     });
     Object.entries(groups).forEach(([k, codes]) => { const [type, from, to] = k.split('|'); lines.push(`${type === 'regular' ? 'Regular papers' : codes.join(', ')}: ${from} → ${to}`); });
     if (b.due !== a.due) lines.push(`Amount due: ${inr(b.due)} → ${inr(a.due)}`);
-    if (a.refund > b.refund) lines.push(`Refund raised: ${inr(a.refund - b.refund)} — ${a.refundLines.map((l) => l.reason).filter((v, i, arr) => arr.indexOf(v) === i).join('; ')}`);
+    if (a.refund > b.refund) lines.push(`Refund raised: ${inr(a.refund - b.refund)}. Reason: ${a.refundLines.map((l) => l.reason).filter((v, i, arr) => arr.indexOf(v) === i).join('; ')}`);
     if (a.refund < b.refund) lines.push(`Refund cancelled: ${inr(b.refund - a.refund)} (fee needed again)`);
     if (windowText(b.win) !== windowText(a.win)) lines.push(`Window: ${windowText(b.win)} → ${windowText(a.win)}`);
     if (c && c.type === 'deadline' && a.win.protectedDeadline) lines.push(`Keeps the ${fmtDate(a.win.protectedDeadline)} deadline: started the form before this change.`);
@@ -659,7 +659,7 @@
     const p = { id: nextId(next, 'PAY'), sid, initiatedAt: at, confirmedAt: addMinutes(at, Number(delayMin) || 0), lines: e.dueLines.map((l) => ({ unit: l.unit, label: l.label, amount: l.amount })), total: e.due, windowEnd: e.win.end, mode: e.win.mode };
     next.payments.push(p);
     const late = p.confirmedAt > p.windowEnd;
-    audit(next, { at, kind: source || 'student', actor: `${sid} (student)`, title: `${sid} paid ${inr(p.total)} (${p.lines.map((l) => l.label).join(' + ')})`, reason: `Payment ${p.id}: started ${fmtTs(p.initiatedAt)}, bank confirmation ${fmtTs(p.confirmedAt)}${late ? ' — after the window closed; counted on time by payment start time' : ''}` });
+    audit(next, { at, kind: source || 'student', actor: `${sid} (student)`, title: `${sid} paid ${inr(p.total)} (${p.lines.map((l) => l.label).join(' + ')})`, reason: `Payment ${p.id}: started ${fmtTs(p.initiatedAt)}, bank confirmation ${fmtTs(p.confirmedAt)}${late ? ': after the window closed; counted on time by payment start time' : ''}` });
     notify(next, sid, at, `Payment ${inr(p.total)} received`, [p.lines.map((l) => `${l.label}: ${inr(l.amount)}`).join(' · '), `Started ${fmtTs(p.initiatedAt)} · bank confirmation ${fmtTs(p.confirmedAt)}`, late ? 'Counted on time: the payment start time is used, not the bank confirmation time.' : 'Fee fixed at today\'s rate.']);
     reconcile(next, at, `${sid} payment ${p.id}`);
     return { state: next };

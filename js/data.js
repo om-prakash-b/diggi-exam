@@ -47,11 +47,11 @@
   // results: past-semester outcomes as the Results module would hold them (grade F = backlog).
   // Semesters for MA201/CS210/BB105/BB108 are not given in the pack; assumed.
   const STUDENTS = [
-    { id: 'S01', name: 'Aarav Mehta', program: 'B.Tech CSE', sem: 5, courses: BTECH5, results: [], att: [82, 84, 85], dues: 0, facts: '—' },
+    { id: 'S01', name: 'Aarav Mehta', program: 'B.Tech CSE', sem: 5, courses: BTECH5, results: [], att: [82, 84, 85], dues: 0, facts: '-' },
     { id: 'S02', name: 'Diya Nair', program: 'B.Tech CSE', sem: 5, courses: BTECH5, results: [{ code: 'CS204', sem: 3, grade: 'F' }], att: [71, 77, 79], dues: 0, facts: 'Backlog: CS204 (Sem 3)' },
     { id: 'S03', name: 'Rohan Gupta', program: 'B.Tech CSE', sem: 5, courses: BTECH5, results: [], att: [78, 72, 68], dues: 0, facts: 'Paid exam fee on 3 Nov' },
-    { id: 'S04', name: 'Ishita Rao', program: 'BBA', sem: 3, courses: BBA3, results: [], att: [68, 69, 70], dues: 0, facts: '—' },
-    { id: 'S05', name: 'Kabir Singh', program: 'B.Sc Physics', sem: 5, courses: ['PH301', 'PH302', 'PH303', 'MA305'], results: [], att: [68, 70, 71], dues: 0, facts: '—' },
+    { id: 'S04', name: 'Ishita Rao', program: 'BBA', sem: 3, courses: BBA3, results: [], att: [68, 69, 70], dues: 0, facts: '-' },
+    { id: 'S05', name: 'Kabir Singh', program: 'B.Sc Physics', sem: 5, courses: ['PH301', 'PH302', 'PH303', 'MA305'], results: [], att: [68, 70, 71], dues: 0, facts: '-' },
     { id: 'S06', name: 'Meera Iyer', program: 'B.Tech CSE', sem: 5, courses: BTECH5, results: [{ code: 'MA201', sem: 3, grade: 'F' }, { code: 'CS210', sem: 4, grade: 'F' }], att: [88, 87, 86], dues: 18000, facts: 'Backlog: MA201, CS210 · Tuition dues ₹18,000' },
     { id: 'S07', name: 'Arjun Das', program: 'BBA', sem: 3, courses: BBA3, results: [{ code: 'BB105', sem: 1, grade: 'F' }, { code: 'BB108', sem: 2, grade: 'F' }], att: [90, 91, 90], dues: 0, facts: 'Backlog: BB105, BB108 · Wants to write only BB105 this time · Paid on 12 Nov' },
     { id: 'S08', name: 'Sana Khan', program: 'B.Com', sem: 5, courses: BCOM5, results: [], att: [76, 76, 76], dues: 0, facts: 'Paid at 11:58 PM on 20 Nov; bank confirmation 12:03 AM on 21 Nov' },
@@ -80,7 +80,7 @@
     { date: '2025-11-14', label: 'Deadline extended to 20 Nov with ₹500 late fee', kind: 'change', change: { type: 'lateWindow', fields: { end: '2025-11-20', fee: 500 }, ref: 'Circular dated 14 Nov', reason: 'Extension after student protests' } },
     { date: '2025-11-18', label: 'State condonation notified (65–75%, B.Tech & BBA, ₹1,000)', kind: 'change', change: { type: 'condonation', fields: { programs: ['B.Tech CSE', 'BBA'], min: 65, max: 75, fee: 1000 }, ref: 'State notification, 18 Nov', reason: 'State condonation notification' } },
     { date: '2025-11-20', label: 'S08 pays at 11:58 PM (sample data, plays automatically)', kind: 'info', note: 'Student action from the sample data.' },
-    { date: '2025-11-22', label: 'Dean requests cut-off move 31 Oct → 20 Nov', kind: 'change', change: { type: 'cutoff', fields: { value: '2025-11-20' }, ref: 'Dean, School of Engineering — request 22 Nov', reason: 'Students improved attendance after 31 Oct' } },
+    { date: '2025-11-22', label: 'Dean requests cut-off move 31 Oct → 20 Nov', kind: 'change', change: { type: 'cutoff', fields: { value: '2025-11-20' }, ref: 'Dean, School of Engineering: request 22 Nov', reason: 'Students improved attendance after 31 Oct' } },
     { date: '2025-11-25', label: 'S11 debarred by disciplinary committee (sample data)', kind: 'change', change: { type: 'hold', fields: { sid: 'S11', note: 'Debarred for one semester' }, ref: 'Disciplinary committee order, 25 Nov', reason: 'Disciplinary committee decision' } },
     { date: '2025-11-30', label: 'Last day of classes', kind: 'info', note: 'No action needed: attendance after the cut-off does not count.' },
     { date: '2025-12-05', label: 'Hall tickets published', kind: 'lock', note: 'Lock & publish the final list (Final list tab).' },

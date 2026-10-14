@@ -72,7 +72,7 @@ check('S12 paid ₹1,200 with no late fee (protected to 15 Nov)', state.payments
 go('2025-11-18T10:00');
 change('condonation', { programs: ['B.Tech CSE', 'BBA'], min: 65, max: 75, fee: 1000 });
 check('S04 (BBA 68%) condonable with catch-up window', ev('S04').attCat === 'condonable' && ev('S04').win.mode === 'catchup');
-check('S05 (B.Sc 68%) still blocked — no scheme', ev('S05').attCat === 'fail');
+check('S05 (B.Sc 68%) still blocked: no scheme', ev('S05').attCat === 'fail');
 check('S02 condonable', ev('S02').attCat === 'condonable');
 check('S09 condonable (74.6%)', ev('S09').attCat === 'condonable');
 show('18 Nov after condonation rule', WATCH);
