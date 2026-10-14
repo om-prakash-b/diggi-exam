@@ -109,3 +109,13 @@ ul.notes { margin: 0; padding-left: 16px; } ul.notes li { margin: 1px 0; }
   .ticket, .ticket * { visibility: visible; }
   .ticket { position: absolute; left: 0; top: 0; width: 100%; }
 }
+
+/* info tooltips */
+.tip { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; margin-left: 6px; border-radius: 50%; border: 1px solid #9ca3af; color: #6b7280; background: #fff; font: italic 700 10px/1 Georgia, serif; cursor: help; vertical-align: middle; }
+#topbar .tip { background: transparent; color: #bbb; border-color: #777; }
+.tip:hover::after, .tip:focus::after { content: attr(data-tip); position: absolute; top: 22px; left: 50%; transform: translateX(-50%); width: 270px; padding: 8px 10px; border-radius: 6px; background: #111; color: #fff; font: 400 12px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; text-align: left; white-space: normal; z-index: 30; box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+#topbar .tip:hover::after, #topbar .tip:focus::after { left: auto; right: -10px; transform: none; }
+#topbar { gap: 10px; font-size: 13px; }
+#topbar .seg { padding: 6px 10px; }
+#topbar .tools button { padding: 6px 8px; }
+#topbar select { max-width: 230px; }

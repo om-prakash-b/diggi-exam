@@ -9,6 +9,7 @@
   const now = () => st().now;
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const toneCls = (t) => (t === 'muted' ? 'muted-b' : t);
+  const tip = (text) => `<span class="tip" data-tip="${esc(text)}" tabindex="0" aria-label="${esc(text)}">i</span>`;
   const badge = (tone, text) => `<span class="badge ${toneCls(tone)}">${esc(text)}</span>`;
   const studentById = (id) => D.STUDENTS.find((s) => s.id === id);
   const flash = (tone, text) => (ui.flash = { tone, text });
@@ -82,7 +83,7 @@
     document.getElementById('topbar').innerHTML = `
       <div class="brand"><span class="logo">Digii</span> Exam Registration &amp; Eligibility <span class="proto">PROTOTYPE</span></div>
       <div class="roles">
-        <span class="small" style="color:#aaa">View:</span>
+        <span class="small" style="color:#aaa">View:</span>${tip('Switch between the university staff side (CoE, Accounts, Dean) and the student side. On the student side, pick any of the 12 students.')}
         <button class="seg ${ui.role === 'admin' ? 'active' : ''}" data-act="role" data-v="admin">University staff (CoE · Accounts · Dean)</button>
         <button class="seg ${ui.role === 'student' ? 'active' : ''}" data-act="role" data-v="student">Student</button>
         ${ui.role === 'student' ? `<span class="small" style="color:#aaa">Viewing as:</span><select data-change="student" title="Pick which student to view as">${D.STUDENTS.map((x) => `<option value="${x.id}" ${x.id === ui.sid ? 'selected' : ''}>${x.id} · ${esc(x.name)} · ${esc(x.program)}</option>`).join('')}</select>` : ''}
@@ -96,7 +97,7 @@
     const today = s.now.slice(0, 10);
     document.getElementById('timebar').innerHTML = `
       <div class="clockrow">
-        <div class="clock"><span class="muted">Today (simulated):</span> <span class="now">${fmtTs(s.now)} ${s.now.slice(0, 4)}</span>
+        <div class="clock"><span class="muted">Today (simulated):</span>${tip('Move the simulated date forward to see how the product behaves on any day. Time only moves forward; use Undo or Restart to go back.')} <span class="now">${fmtTs(s.now)} ${s.now.slice(0, 4)}</span>
           <input type="date" id="clkDate" value="${today}" class="finput" style="min-width:0"> <input type="time" id="clkTime" value="${s.now.slice(11, 16)}" class="finput" style="min-width:0">
           <button class="btn sm" data-act="go">Set time</button> <button class="btn sm" data-act="plusday">+1 day</button></div>
         <span class="spacer"></span>${badge(ph.tone, ph.label)}
@@ -109,7 +110,15 @@
   function renderAdmin() {
     const s = st();
     const pendingApprovals = s.cycle ? Object.values(E.evaluateAll(s, s.now)).filter((e) => e.attCat === 'cond_pending').length : 0;
-    const tabs = [['setup', 'Setup'], ['dashboard', 'Dashboard'], ['changes', 'Changes'], ['approvals', 'Approvals' + (pendingApprovals ? `<span class="count">${pendingApprovals}</span>` : '')], ['final', 'Final list'], ['audit', 'Audit log' + (s.audit.length ? `<span class="count">${s.audit.length}</span>` : '')]];
+    const TIPS = {
+      setup: 'Create the exam cycle for this semester: dates, fees, attendance rule, checks and exceptions. After it is created, see the current settings and their versions.',
+      dashboard: 'See every student at a glance: status, attendance used, paid, due, refunds and deadline window. Open any student view from here.',
+      changes: 'Change a rule or a student record mid-cycle: deadline, fees, cut-off, condonation, attendance correction or hold. Preview the impact on every student before confirming.',
+      approvals: 'Approve or reject condonation requests. A request can be approved once the student has paid the condonation fee.',
+      final: 'Lock and publish who writes which paper. This list goes to hall tickets, seating, question-paper printing and Accounts. Changes after lock become amendments.',
+      audit: 'Every setup, change, approval, lock, amendment and student action, with who, when and why. Open a change to see what the admin saw before confirming.',
+    };
+    const tabs = [['setup', 'Setup'], ['dashboard', 'Dashboard'], ['changes', 'Changes'], ['approvals', 'Approvals' + (pendingApprovals ? `<span class="count">${pendingApprovals}</span>` : '')], ['final', 'Final list'], ['audit', 'Audit log' + (s.audit.length ? `<span class="count">${s.audit.length}</span>` : '')]].map(([k, l]) => [k, l + tip(TIPS[k])]);
     const body = { setup: renderSetup, dashboard: renderDashboard, changes: renderChanges, approvals: renderApprovals, final: renderFinal, audit: renderAudit }[ui.tab]();
     const actingAs = {
       setup: ['Controller of Examinations', 'sets up the exam cycle. Accounts owns the fee settings.'],
@@ -378,12 +387,12 @@
       <p class="small muted">${e.papers.some((p) => p.type !== 'regular')
         ? (e.canAct ? 'Regular papers are this semester\'s registered courses and cannot be changed here.' : 'Paper choices can be changed only while your exam form window is open.')
         : 'You have no backlog or improvement papers, so there is nothing to choose: your papers are this semester\'s registered courses. Changes to courses go through course registration, not the exam form.'}</p>`;
-    const payBox = e.canAct && e.due > 0 ? `<div class="card" style="border:2px solid var(--warn)"><h3>Pay now</h3>
+    const payBox = e.canAct && e.due > 0 ? `<div class="card" style="border:2px solid var(--warn)"><h3>Pay now${tip('Pay what is due now. The fee is fixed at the moment you pay, and payment counts from when you start it, not when the bank confirms.')}</h3>
         <table>${e.dueLines.map((l) => `<tr><td>${esc(l.label)}</td><td class="right">${inr(l.amount)}</td></tr>`).join('')}<tr><td><strong>Total</strong></td><td class="right"><strong>${inr(e.due)}</strong></td></tr></table>
         <div class="row" style="margin-top:8px"><label class="small">Simulated bank: <select data-change="delay"><option value="0" ${ui.payDelay == 0 ? 'selected' : ''}>confirms instantly</option><option value="5" ${ui.payDelay == 5 ? 'selected' : ''}>confirms 5 minutes later</option><option value="120" ${ui.payDelay == 120 ? 'selected' : ''}>confirms 2 hours later</option></select></label>
         <button class="btn primary" data-act="pay" ${dirty ? 'disabled' : ''}>Pay ${inr(e.due)} (simulated)</button></div>
         <p class="small muted">Rates are fixed at the moment you pay. Payment counts from when you start it, not when the bank confirms.</p></div>` : '';
-    const condBox = e.attCat === 'condonable' && e.canAct ? `<div class="card" style="border:2px solid var(--warn)"><h3>Condonation</h3><p>Your attendance (${e.att.value}%) is in the condonation range for ${esc(stu.program)} (${e.att.rule.min}–${e.att.rule.max}%). Apply, pay ${inr(S.fees.condonation)}, and the CoE approves.</p><button class="btn primary" data-act="apply-cond">Apply for condonation</button></div>` : '';
+    const condBox = e.attCat === 'condonable' && e.canAct ? `<div class="card" style="border:2px solid var(--warn)"><h3>Condonation${tip('Your attendance is in the condonation range for your program. Apply, pay the condonation fee, and the CoE approves.')}</h3><p>Your attendance (${e.att.value}%) is in the condonation range for ${esc(stu.program)} (${e.att.rule.min}–${e.att.rule.max}%). Apply, pay ${inr(S.fees.condonation)}, and the CoE approves.</p><button class="btn primary" data-act="apply-cond">Apply for condonation</button></div>` : '';
     const notices = (s.notices[stu.id] || []).slice().reverse();
     const pays = e.payments.map((p) => `<tr><td class="nowrap">${p.id}</td><td>${p.lines.map((l) => `${esc(l.label)} ${inr(l.amount)}`).join('<br>')}</td><td class="small nowrap">Started ${fmtTs(p.initiatedAt)}<br>Bank ${fmtTs(p.confirmedAt)}${p.pending ? ' (pending)' : ''}</td><td class="right">${inr(p.total)}</td></tr>`).join('');
     const myRows = s.lock ? s.lock.rows.filter((r) => r.sid === stu.id) : [];
@@ -393,16 +402,16 @@
         <div class="row" style="margin-top:8px"><button class="btn sm" data-act="print">Print</button></div></div>` : '';
     return header + `
       <div class="banner ${toneCls(e.headline.tone)}"><div class="h">${esc(e.headline.text)}</div><div class="n">${esc(e.headline.next)}</div></div>
-      ${ticket ? `<div class="card"><h3>Hall ticket</h3>${ticket}</div>` : ''}
+      ${ticket ? `<div class="card"><h3>Hall ticket${tip('Available once the final list is locked. If it is amended later, a new version appears here and the old one is superseded.')}</h3>${ticket}</div>` : ''}
       <div class="grid2">
         <div>
-          <div class="card"><h3>Why: your checks</h3><ul class="notes">${e.why.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>
+          <div class="card"><h3>Why: your checks${tip('The reasons behind your status: attendance against the rule, condonation, tuition dues, holds and your deadline.')}</h3><ul class="notes">${e.why.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>
           ${condBox}${payBox}
-          <div class="card"><h3>Your papers</h3>${papers}</div>
-          <div class="card"><h3>Payments &amp; refunds</h3>${pays ? `<table><tr><th>Ref</th><th>For</th><th>Time</th><th class="right">Amount</th></tr>${pays}</table>` : '<p class="muted">No payments yet.</p>'}
+          <div class="card"><h3>Your papers${tip('Your courses for this semester plus any backlog or improvement papers. Tick or untick backlog and improvement papers while your window is open, then save before paying.')}</h3>${papers}</div>
+          <div class="card"><h3>Payments &amp; refunds${tip('Every payment with its start and bank-confirmation time, and any refunds raised automatically after a change.')}</h3>${pays ? `<table><tr><th>Ref</th><th>For</th><th>Time</th><th class="right">Amount</th></tr>${pays}</table>` : '<p class="muted">No payments yet.</p>'}
             ${e.refundLines.length ? `<h3 style="margin-top:10px">Refunds raised</h3><table>${e.refundLines.map((l) => `<tr><td>${esc(l.label)}</td><td class="small">${esc(l.reason)}</td><td class="right">${inr(l.amount)}</td></tr>`).join('')}</table><p class="small muted">${S.rules.refund === 'refund' ? 'Refunded to the original payment method (simulated).' : 'Held as credit for the next cycle.'}</p>` : ''}</div>
         </div>
-        <div class="card"><h3>What changed for you</h3><p class="small muted">In-app notices (SMS/email simulated). Every rule change that affects you appears here with what it means for you.</p>
+        <div class="card"><h3>What changed for you${tip('A notice for every rule change that affected you, and what it means for you.')}</h3><p class="small muted">In-app notices (SMS/email simulated). Every rule change that affects you appears here with what it means for you.</p>
           ${notices.length ? notices.map((n) => `<div class="notice"><div class="a">${fmtTs(n.at)}</div><div class="t">${esc(n.title)}</div><ul class="notes small">${n.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ul></div>`).join('') : '<p class="muted">No notices yet.</p>'}</div>
       </div>`;
   }
