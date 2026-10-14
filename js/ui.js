@@ -374,7 +374,10 @@
         <td>${p.type === 'regular' ? 'Regular' : p.type === 'backlog' ? `Backlog (Sem ${p.fromSem})` : `Improvement (grade ${p.grade})`}</td>
         <td>${badge(E.PAPER_STATUS[p.status].tone, E.PAPER_STATUS[p.status].label)}</td><td class="right">${p.type === 'regular' ? '<span class="small muted">in semester fee</span>' : inr(p.fee)}</td></tr>`).join('')}</table>
       ${dirty ? `<div class="row" style="margin-top:8px"><button class="btn dark" data-act="save-sel">Save paper choices</button><span class="small muted">Save before paying.</span></div>` : ''}
-      ${e.papers.some((p) => p.type === 'backlog') && S.exceptions.backlogOptOut ? '<p class="small muted">Untick a backlog paper to skip it this time; it carries forward to the next cycle.</p>' : ''}`;
+      ${e.papers.some((p) => p.type === 'backlog') && S.exceptions.backlogOptOut ? '<p class="small muted">Untick a backlog paper to skip it this time; it carries forward to the next cycle.</p>' : ''}
+      <p class="small muted">${e.papers.some((p) => p.type !== 'regular')
+        ? (e.canAct ? 'Regular papers are this semester\'s registered courses and cannot be changed here.' : 'Paper choices can be changed only while your exam form window is open.')
+        : 'You have no backlog or improvement papers, so there is nothing to choose: your papers are this semester\'s registered courses. Changes to courses go through course registration, not the exam form.'}</p>`;
     const payBox = e.canAct && e.due > 0 ? `<div class="card" style="border:2px solid var(--warn)"><h3>Pay now</h3>
         <table>${e.dueLines.map((l) => `<tr><td>${esc(l.label)}</td><td class="right">${inr(l.amount)}</td></tr>`).join('')}<tr><td><strong>Total</strong></td><td class="right"><strong>${inr(e.due)}</strong></td></tr></table>
         <div class="row" style="margin-top:8px"><label class="small">Simulated bank: <select data-change="delay"><option value="0" ${ui.payDelay == 0 ? 'selected' : ''}>confirms instantly</option><option value="5" ${ui.payDelay == 5 ? 'selected' : ''}>confirms 5 minutes later</option><option value="120" ${ui.payDelay == 120 ? 'selected' : ''}>confirms 2 hours later</option></select></label>
